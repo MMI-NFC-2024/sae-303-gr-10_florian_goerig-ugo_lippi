@@ -1,0 +1,120 @@
+---
+import Layout from "../layouts/Layout.astro";
+---
+
+<Layout>
+    <section>
+        <h1 class="text-3xl font-bold mb-6 text-center">
+            Carte des Gares Ouvertes par Département
+        </h1>
+
+        <!-- Conteneur de la carte -->
+        <div class="rounded-3xl border border-gray-200 p-6 shadow-lg bg-white">
+            <div
+                id="carte-container"
+                class="flex justify-center min-h-[620px] items-center"
+            >
+                <div class="text-gray-500">Chargement de la carte...</div>
+            </div>
+        </div>
+    </section>
+
+    <script>
+        import * as Plot from "@observablehq/plot";
+        import * as d3 from "d3";
+        import departementsGeoJSON from "../assets/departementsGeoJSON.json";
+        import garedept from "../assets/garedept.json";
+
+        // Filtrer les données selon use="O" ou use="N"
+        const filteredData = garedept.filter(
+            (d: any) => d.use === "O" || d.use === "N",
+        );
+
+        // Grouper par département et statut
+        const grouped = d3.rollup(
+            filteredData,
+            (v) => v.length,
+            (d: any) => d.DEPT_NUM,
+            (d: any) => d.DEPT,
+            (d: any) => (d.use === "O" ? "Ouvert" : "Fermé"),
+        );
+
+        // Transformer en tableau plat
+        const countsByDept = Array.from(
+            grouped,
+            ([codeDept, nomMap]) =>
+                Array.from(nomMap, ([nomDept, statusMap]) => {
+                    let sortedStatuses = Array.from(
+                        statusMap,
+                        ([status, count]) => ({
+                            status,
+                            count,
+                        }),
+                    ).sort((a, b) =>
+                        a.status === "Ouvert"
+                            ? -1
+                            : b.status === "Ouvert"
+                              ? 1
+                              : 0,
+                    );
+
+                    return sortedStatuses.map(({ status, count }) => ({
+                        code_dept: codeDept,
+                        nom_dept: nomDept,
+                        status,
+                        count,
+                    }));
+                }).flat(),
+        ).flat();
+
+        // Filtrer pour ne garder que les gares ouvertes
+        const gareOuvertesParDepartement = countsByDept
+            .filter((d: any) => d.status === "Ouvert")
+            .map((d: any) => ({
+                code: d.code_dept,
+                nom: d.nom_dept,
+                nbGares: d.count,
+            }));
+
+        // Créer la carte choroplèthe
+        const optionPlot = {
+            width: 900,
+            projection: { type: "mercator" as const, domain: departementsGeoJSON },
+            color: {
+                type: "quantile" as const,
+                n: 8,
+                scheme: "blues" as const,
+                label: "Gares ouvertes par département",
+                legend: true,
+            },
+            marks: [
+                Plot.geo(departementsGeoJSON, {
+                    fill: (d: any) => {
+                        // Jointure sur code (toujours sous forme de string !)
+                        const data = gareOuvertesParDepartement.find(
+                            (e: any) =>
+                                String(e.code) === String(d.properties.code),
+                        );
+                        return data ? data.nbGares : 0;
+                    },
+                    stroke: "#999",
+                    title: (d: any) => {
+                        const data = gareOuvertesParDepartement.find(
+                            (e: any) =>
+                                String(e.code) === String(d.properties.code),
+                        );
+                        const nb = data ? data.nbGares : 0;
+                        return `${d.properties.nom}\nGares ouvertes : ${nb}`;
+                    },
+                    tip: true,
+                }),
+            ],
+        };
+
+        const container = document.getElementById("carte-container");
+        if (container) {
+            container.innerHTML = "";
+            container.appendChild(Plot.plot(optionPlot));
+        }
+    </script>
+</Layout>
