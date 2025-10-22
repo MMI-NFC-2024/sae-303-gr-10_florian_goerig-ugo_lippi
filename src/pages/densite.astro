@@ -3,134 +3,137 @@ import Layout from "../layouts/Layout.astro";
 ---
 
 <Layout>
-    <section class="px-4 py-8">
-        <h1 class="text-4xl font-bold text-center mb-8 text-blue-700">
-            Carte des Gares Ouvertes par Département
-        </h1>
+  <section class="px-4 py-8">
+    <h1 class="text-4xl font-bold text-center mb-8 text-blue-700">
+      Carte des Gares Ouvertes par Département
+    </h1>
 
-        <!-- ===== Introduction (avant la carte) ===== -->
-        <p class="text-center text-gray-700 max-w-3xl mx-auto mb-6">
-          Chaque département raconte une histoire différente.
-          Sur cette carte, plus la couleur est foncée, plus le nombre de gares encore ouvertes est élevé.
-          Ce simple dégradé de bleu révèle une <strong>géographie ferroviaire à deux vitesses</strong>.
-        </p>
+    <!-- ===== Introduction (avant la carte) ===== -->
+    <p class="text-center text-gray-700 max-w-3xl mx-auto mb-6">
+      Chaque département raconte une histoire différente. Sur cette carte, plus
+      la couleur est foncée, plus le nombre de gares encore ouvertes est élevé.
+      Ce simple dégradé de bleu révèle une <strong
+        >géographie ferroviaire à deux vitesses</strong
+      >.
+    </p>
 
-        <!-- Conteneur de la carte -->
-        <div class="rounded-3xl border border-gray-200 p-6 shadow-lg bg-white">
-            <div
-                id="carte-container"
-                class="flex justify-center min-h-[620px] items-center"
-            >
-                <div class="text-gray-500">Chargement de la carte...</div>
-            </div>
-        </div>
+    <!-- Conteneur de la carte -->
+    <div class="rounded-3xl border border-gray-200 p-6 shadow-lg bg-white">
+      <div
+        id="carte-container"
+        class="flex justify-center min-h-[620px] items-center"
+      >
+        <div class="text-gray-500">Chargement de la carte...</div>
+      </div>
+    </div>
 
-        <!-- ===== Analyse (après la carte) ===== -->
-        <p class="text-center text-gray-600 max-w-3xl mx-auto mt-6">
-          Dans le nord et l'est, le réseau reste dense, hérité des zones industrielles et minières.
-          L'Île-de-France, quant à elle, concentre un maillage serré de gares actives, reflet d'une mobilité quotidienne intense.
-          À l'inverse, le Massif central, la Creuse ou les Landes apparaissent en teintes claires — 
-          autant de territoires où la disparition des lignes a laissé des <strong>espaces déconnectés</strong>.
-          Cette fracture entre centre et périphérie questionne la capacité du train à relier encore tous les Français.
-        </p>
-    </section>
+    <!-- ===== Analyse (après la carte) ===== -->
+    <p class="text-center text-gray-600 max-w-3xl mx-auto mt-6">
+      Dans le nord et l'est, le réseau reste dense, hérité des zones
+      industrielles et minières. L'Île-de-France, quant à elle, concentre un
+      maillage serré de gares actives, reflet d'une mobilité quotidienne
+      intense. À l'inverse, le Massif central, la Creuse ou les Landes
+      apparaissent en teintes claires — autant de territoires où la disparition
+      des lignes a laissé des <strong>espaces déconnectés</strong>. Cette
+      fracture entre centre et périphérie questionne la capacité du train à
+      relier encore tous les Français.
+    </p>
+  </section>
+  <div class="max-w-4xl mx-auto text-center mt-8 mb-12">
+  <a
+    href="/carte-gares-tourisme"
+    class="inline-flex items-center gap-2 bg-blue-700 text-white px-5 py-2 rounded-lg hover:bg-blue-800 focus:outline-none focus:ring-4 focus:ring-blue-300 transition"
+    aria-label="Aller à la page Tourisme"
+  >
+    Suivant : Tourisme →
+  </a>
+</div>
 
-    <script>
-        import * as Plot from "@observablehq/plot";
-        import * as d3 from "d3";
-        import departementsGeoJSON from "../assets/departementsGeoJSON.json";
-        import garedept from "../assets/garedept.json";
+  <script>
+    import * as Plot from "@observablehq/plot";
+    import * as d3 from "d3";
+    import departementsGeoJSON from "../assets/departementsGeoJSON.json";
+    import garedept from "../assets/garedept.json";
 
-        // Filtrer les données selon use="O" ou use="N"
-        const filteredData = garedept.filter(
-            (d: any) => d.use === "O" || d.use === "N",
+    // Filtrer les données selon use="O" ou use="N"
+    const filteredData = garedept.filter(
+      (d: any) => d.use === "O" || d.use === "N"
+    );
+
+    // Grouper par département et statut
+    const grouped = d3.rollup(
+      filteredData,
+      (v) => v.length,
+      (d: any) => d.DEPT_NUM,
+      (d: any) => d.DEPT,
+      (d: any) => (d.use === "O" ? "Ouvert" : "Fermé")
+    );
+
+    // Transformer en tableau plat
+    const countsByDept = Array.from(grouped, ([codeDept, nomMap]) =>
+      Array.from(nomMap, ([nomDept, statusMap]) => {
+        let sortedStatuses = Array.from(statusMap, ([status, count]) => ({
+          status,
+          count,
+        })).sort((a, b) =>
+          a.status === "Ouvert" ? -1 : b.status === "Ouvert" ? 1 : 0
         );
 
-        // Grouper par département et statut
-        const grouped = d3.rollup(
-            filteredData,
-            (v) => v.length,
-            (d: any) => d.DEPT_NUM,
-            (d: any) => d.DEPT,
-            (d: any) => (d.use === "O" ? "Ouvert" : "Fermé"),
-        );
+        return sortedStatuses.map(({ status, count }) => ({
+          code_dept: codeDept,
+          nom_dept: nomDept,
+          status,
+          count,
+        }));
+      }).flat()
+    ).flat();
 
-        // Transformer en tableau plat
-        const countsByDept = Array.from(
-            grouped,
-            ([codeDept, nomMap]) =>
-                Array.from(nomMap, ([nomDept, statusMap]) => {
-                    let sortedStatuses = Array.from(
-                        statusMap,
-                        ([status, count]) => ({
-                            status,
-                            count,
-                        }),
-                    ).sort((a, b) =>
-                        a.status === "Ouvert"
-                            ? -1
-                            : b.status === "Ouvert"
-                              ? 1
-                              : 0,
-                    );
+    // Filtrer pour ne garder que les gares ouvertes
+    const gareOuvertesParDepartement = countsByDept
+      .filter((d: any) => d.status === "Ouvert")
+      .map((d: any) => ({
+        code: d.code_dept,
+        nom: d.nom_dept,
+        nbGares: d.count,
+      }));
 
-                    return sortedStatuses.map(({ status, count }) => ({
-                        code_dept: codeDept,
-                        nom_dept: nomDept,
-                        status,
-                        count,
-                    }));
-                }).flat(),
-        ).flat();
+    // Créer la carte choroplèthe
+    const optionPlot = {
+      width: 900,
+      projection: { type: "mercator" as const, domain: departementsGeoJSON },
+      color: {
+        type: "quantile" as const,
+        n: 8,
+        scheme: "blues" as const,
+        label: "Gares ouvertes par département",
+        legend: true,
+      },
+      marks: [
+        Plot.geo(departementsGeoJSON, {
+          fill: (d: any) => {
+            // Jointure sur code (toujours sous forme de string !)
+            const data = gareOuvertesParDepartement.find(
+              (e: any) => String(e.code) === String(d.properties.code)
+            );
+            return data ? data.nbGares : 0;
+          },
+          stroke: "#999",
+          title: (d: any) => {
+            const data = gareOuvertesParDepartement.find(
+              (e: any) => String(e.code) === String(d.properties.code)
+            );
+            const nb = data ? data.nbGares : 0;
+            return `${d.properties.nom}\nGares ouvertes : ${nb}`;
+          },
+          tip: true,
+        }),
+      ],
+    };
 
-        // Filtrer pour ne garder que les gares ouvertes
-        const gareOuvertesParDepartement = countsByDept
-            .filter((d: any) => d.status === "Ouvert")
-            .map((d: any) => ({
-                code: d.code_dept,
-                nom: d.nom_dept,
-                nbGares: d.count,
-            }));
-
-        // Créer la carte choroplèthe
-        const optionPlot = {
-            width: 900,
-            projection: { type: "mercator" as const, domain: departementsGeoJSON },
-            color: {
-                type: "quantile" as const,
-                n: 8,
-                scheme: "blues" as const,
-                label: "Gares ouvertes par département",
-                legend: true,
-            },
-            marks: [
-                Plot.geo(departementsGeoJSON, {
-                    fill: (d: any) => {
-                        // Jointure sur code (toujours sous forme de string !)
-                        const data = gareOuvertesParDepartement.find(
-                            (e: any) =>
-                                String(e.code) === String(d.properties.code),
-                        );
-                        return data ? data.nbGares : 0;
-                    },
-                    stroke: "#999",
-                    title: (d: any) => {
-                        const data = gareOuvertesParDepartement.find(
-                            (e: any) =>
-                                String(e.code) === String(d.properties.code),
-                        );
-                        const nb = data ? data.nbGares : 0;
-                        return `${d.properties.nom}\nGares ouvertes : ${nb}`;
-                    },
-                    tip: true,
-                }),
-            ],
-        };
-
-        const container = document.getElementById("carte-container");
-        if (container) {
-            container.innerHTML = "";
-            container.appendChild(Plot.plot(optionPlot));
-        }
-    </script>
+    const container = document.getElementById("carte-container");
+    if (container) {
+      container.innerHTML = "";
+      container.appendChild(Plot.plot(optionPlot));
+    }
+  </script>
 </Layout>

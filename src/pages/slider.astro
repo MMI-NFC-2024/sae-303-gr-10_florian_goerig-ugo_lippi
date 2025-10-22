@@ -15,21 +15,26 @@ const slides = ["Gares", "Lignes"];
   <div class="relative max-w-full mx-auto px-4 py-8">
     <!-- En-tête avec titre et select -->
     <div class="mb-6 text-center">
-      <h1 class="text-4xl font-bold text-center mb-8 text-blue-700">Visualisation des données ferroviaires</h1>
-      
+      <h1 class="text-4xl font-bold text-center mb-8 text-blue-700">
+        Visualisation des données ferroviaires
+      </h1>
+
       <!-- ===== Introduction (avant le slider) ===== -->
       <p class="text-center text-gray-700 max-w-3xl mx-auto mb-6">
-        Depuis plus d'un siècle, le train structure le territoire français.
-        Mais au fil des décennies, <strong>la carte du rail s'est effritée</strong> : certaines lignes ont disparu, 
-        des gares ont fermé, et des zones entières ont vu leurs connexions s'effacer.
-        Ces cartes successives racontent cette transformation.
+        Depuis plus d'un siècle, le train structure le territoire français. Mais
+        au fil des décennies, <strong>la carte du rail s'est effritée</strong> :
+        certaines lignes ont disparu, des gares ont fermé, et des zones entières
+        ont vu leurs connexions s'effacer. Ces cartes successives racontent cette
+        transformation.
       </p>
 
       <p class="text-center text-gray-600 max-w-3xl mx-auto mb-8">
-        En passant d'une visualisation à l'autre, on observe les <strong>contrastes entre les gares ouvertes et fermées</strong>, 
-        puis entre les <strong>lignes actives et abandonnées</strong>.
-        Les points verts symbolisent les gares encore en service, les rouges celles qui ont cessé d'accueillir des trains.
-        Les traits suivent la même logique pour les lignes ferroviaires.
+        En passant d'une visualisation à l'autre, on observe les <strong
+          >contrastes entre les gares ouvertes et fermées</strong
+        >, puis entre les <strong>lignes actives et abandonnées</strong>. Les
+        points verts symbolisent les gares encore en service, les rouges celles
+        qui ont cessé d'accueillir des trains. Les traits suivent la même
+        logique pour les lignes ferroviaires.
       </p>
 
       <select
@@ -37,11 +42,7 @@ const slides = ["Gares", "Lignes"];
         class="p-2 rounded-md bg-white text-gray-800 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
       >
         <option value="">-- Navigation rapide --</option>
-        {
-          slides.map((slide, index) => (
-            <option value={index}>{slide}</option>
-          ))
-        }
+        {slides.map((slide, index) => <option value={index}>{slide}</option>)}
       </select>
     </div>
 
@@ -53,13 +54,26 @@ const slides = ["Gares", "Lignes"];
         class="absolute left-0 top-1/2 -translate-y-1/2 z-10 bg-white/90 hover:bg-white shadow-lg rounded-full p-3 transition-all hover:scale-110"
         aria-label="Précédent"
       >
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          class="h-6 w-6"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M15 19l-7-7 7-7"></path>
         </svg>
       </button>
 
       <!-- Slides container -->
-      <div id="carousel" class="flex overflow-x-hidden scroll-smooth snap-x snap-mandatory rounded-xl">
+      <div
+        id="carousel"
+        class="flex overflow-x-hidden scroll-smooth snap-x snap-mandatory rounded-xl"
+      >
         <!-- Slide 1: Gares -->
         <section
           class="min-w-full snap-start border border-slate-200 bg-white shadow-sm p-8"
@@ -68,7 +82,9 @@ const slides = ["Gares", "Lignes"];
           <h2 class="mb-4 text-2xl font-semibold text-center">Gares</h2>
           <div class="flex gap-6 justify-center overflow-x-auto">
             <div>
-              <h3 class="text-xl font-medium mb-2 text-center">Gares ouvertes</h3>
+              <h3 class="text-xl font-medium mb-2 text-center">
+                Gares ouvertes
+              </h3>
               <PlotFigure
                 options={{
                   width: 700,
@@ -77,14 +93,19 @@ const slides = ["Gares", "Lignes"];
                     domain: departementsGeoJSON,
                   },
                   marks: [
-                    Plot.geo(departementsGeoJSON, { stroke: "#ccc", strokeWidth: 0.5 }),
+                    Plot.geo(departementsGeoJSON, {
+                      stroke: "#ccc",
+                      strokeWidth: 0.5,
+                    }),
                     Plot.geo(garesOuverte, { fill: "green", r: 3 }),
                   ],
                 }}
               />
             </div>
             <div>
-              <h3 class="text-xl font-medium mb-2 text-center">Gares fermées</h3>
+              <h3 class="text-xl font-medium mb-2 text-center">
+                Gares fermées
+              </h3>
               <PlotFigure
                 options={{
                   width: 700,
@@ -93,7 +114,10 @@ const slides = ["Gares", "Lignes"];
                     domain: departementsGeoJSON,
                   },
                   marks: [
-                    Plot.geo(departementsGeoJSON, { stroke: "#ccc", strokeWidth: 0.5 }),
+                    Plot.geo(departementsGeoJSON, {
+                      stroke: "#ccc",
+                      strokeWidth: 0.5,
+                    }),
                     Plot.geo(garesFermées, { fill: "red", r: 3 }),
                   ],
                 }}
@@ -110,7 +134,9 @@ const slides = ["Gares", "Lignes"];
           <h2 class="mb-4 text-2xl font-semibold text-center">Lignes</h2>
           <div class="flex gap-6 justify-center overflow-x-auto">
             <div>
-              <h3 class="text-xl font-medium mb-2 text-center">Lignes ouvertes</h3>
+              <h3 class="text-xl font-medium mb-2 text-center">
+                Lignes ouvertes
+              </h3>
               <PlotFigure
                 options={{
                   width: 700,
@@ -119,14 +145,22 @@ const slides = ["Gares", "Lignes"];
                     domain: departementsGeoJSON,
                   },
                   marks: [
-                    Plot.geo(departementsGeoJSON, { stroke: "#ccc", strokeWidth: 0.5 }),
-                    Plot.geo(lignesOuvertes, { stroke: "green", strokeWidth: 2 }),
+                    Plot.geo(departementsGeoJSON, {
+                      stroke: "#ccc",
+                      strokeWidth: 0.5,
+                    }),
+                    Plot.geo(lignesOuvertes, {
+                      stroke: "green",
+                      strokeWidth: 2,
+                    }),
                   ],
                 }}
               />
             </div>
             <div>
-              <h3 class="text-xl font-medium mb-2 text-center">Lignes fermées</h3>
+              <h3 class="text-xl font-medium mb-2 text-center">
+                Lignes fermées
+              </h3>
               <PlotFigure
                 options={{
                   width: 700,
@@ -135,7 +169,10 @@ const slides = ["Gares", "Lignes"];
                     domain: departementsGeoJSON,
                   },
                   marks: [
-                    Plot.geo(departementsGeoJSON, { stroke: "#ccc", strokeWidth: 0.5 }),
+                    Plot.geo(departementsGeoJSON, {
+                      stroke: "#ccc",
+                      strokeWidth: 0.5,
+                    }),
                     Plot.geo(lignesFermées, { stroke: "red", strokeWidth: 2 }),
                   ],
                 }}
@@ -151,8 +188,18 @@ const slides = ["Gares", "Lignes"];
         class="absolute right-0 top-1/2 -translate-y-1/2 z-10 bg-white/90 hover:bg-white shadow-lg rounded-full p-3 transition-all hover:scale-110"
         aria-label="Suivant"
       >
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          class="h-6 w-6"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M9 5l7 7-7 7"></path>
         </svg>
       </button>
     </div>
@@ -172,12 +219,25 @@ const slides = ["Gares", "Lignes"];
 
     <!-- ===== Analyse (après le slider) ===== -->
     <p class="text-center text-gray-600 max-w-3xl mx-auto mt-8">
-      Ce jeu de cartes superposées dresse un constat clair : le réseau ferroviaire français s'est contracté.
-      Les grandes régions urbaines — Paris, Lyon, Lille, Marseille — concentrent désormais la majorité des lignes actives, 
-      tandis que de vastes territoires ruraux, notamment dans le centre et le sud-ouest, sont devenus des <strong>zones blanches du rail</strong>.
-      Ces fractures interrogent la promesse d'un <strong>tourisme accessible à tous</strong> et mettent en lumière 
-      les défis d'une mobilité durable à l'échelle nationale.
+      Ce jeu de cartes superposées dresse un constat clair : le réseau
+      ferroviaire français s'est contracté. Les grandes régions urbaines —
+      Paris, Lyon, Lille, Marseille — concentrent désormais la majorité des
+      lignes actives, tandis que de vastes territoires ruraux, notamment dans le
+      centre et le sud-ouest, sont devenus des <strong
+        >zones blanches du rail</strong
+      >. Ces fractures interrogent la promesse d'un <strong
+        >tourisme accessible à tous</strong
+      > et mettent en lumière les défis d'une mobilité durable à l'échelle nationale.
     </p>
+  </div>
+  <div class="max-w-4xl mx-auto text-center mt-8 mb-12">
+    <a
+      href="/carte-gares-lignes"
+      class="inline-flex items-center gap-2 bg-blue-700 text-white px-5 py-2 rounded-lg hover:bg-blue-800 focus:outline-none focus:ring-4 focus:ring-blue-300 transition"
+      aria-label="Aller à la page Gares & Lignes"
+    >
+      Suivant : Gares & Lignes →
+    </a>
   </div>
 
   <!-- Script pour le carrousel -->
@@ -185,7 +245,9 @@ const slides = ["Gares", "Lignes"];
     const carousel = document.getElementById("carousel");
     const prevBtn = document.getElementById("prevBtn");
     const nextBtn = document.getElementById("nextBtn");
-    const slideSelect = document.getElementById("slideSelect") as HTMLSelectElement;
+    const slideSelect = document.getElementById(
+      "slideSelect"
+    ) as HTMLSelectElement;
     const indicators = document.querySelectorAll(".indicator");
     const totalSlides = indicators.length;
     let currentSlide = 0;
@@ -245,7 +307,11 @@ const slides = ["Gares", "Lignes"];
       const slideWidth = carousel.offsetWidth;
       const scrollPosition = carousel.scrollLeft;
       const newIndex = Math.round(scrollPosition / slideWidth);
-      if (newIndex !== currentSlide && newIndex >= 0 && newIndex < totalSlides) {
+      if (
+        newIndex !== currentSlide &&
+        newIndex >= 0 &&
+        newIndex < totalSlides
+      ) {
         currentSlide = newIndex;
         indicators.forEach((indicator, i) => {
           if (i === currentSlide) {
