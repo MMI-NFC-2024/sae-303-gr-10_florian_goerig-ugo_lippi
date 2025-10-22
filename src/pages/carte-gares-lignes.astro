@@ -1,0 +1,223 @@
+---
+import Layout from "../layouts/Layout.astro";
+import departementsGeoJSON from "../assets/departementsGeoJSON.json";
+const listeDepartements = [
+    "Toute la France",
+    ...Array.from(
+        new Set(departementsGeoJSON.features.map((d) => d.properties.nom)),
+    )
+        .filter((n) => n && n.trim() !== "" && n !== "Inconnu")
+        .sort(),
+];
+
+const listeGares = ["Toutes", "Gares Ouvertes", "Gares Fermées", "Aucune Gare"];
+
+const listeLignes = [
+    "Toutes",
+    "Lignes Ouvertes",
+    "Lignes Fermées",
+    "Aucune Ligne",
+];
+---
+
+<Layout>
+    <section>
+        <h1 class="text-3xl font-bold mb-6 text-center">
+            Visualisation des Gares et Lignes Ferroviaires
+        </h1>
+
+        <!-- Filtres -->
+        <div class="flex flex-wrap gap-4 justify-center items-center mb-6">
+            <label class="flex items-center gap-2">
+                <span class="font-medium">Département :</span>
+                <select
+                    id="departement"
+                    class="border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                >
+                    {
+                        listeDepartements.map((d, i) => (
+                            <option value={d} selected={i === 0}>
+                                {d}
+                            </option>
+                        ))
+                    }
+                </select>
+            </label>
+
+            <label class="flex items-center gap-2">
+                <span class="font-medium">Gares :</span>
+                <select
+                    id="gares"
+                    class="border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                >
+                    {
+                        listeGares.map((g) => (
+                            <option value={g} selected={g === "Toutes"}>
+                                {g}
+                            </option>
+                        ))
+                    }
+                </select>
+            </label>
+
+            <label class="flex items-center gap-2">
+                <span class="font-medium">Lignes :</span>
+                <select
+                    id="lignes"
+                    class="border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                >
+                    {
+                        listeLignes.map((l) => (
+                            <option value={l} selected={l === "Toutes"}>
+                                {l}
+                            </option>
+                        ))
+                    }
+                </select>
+            </label>
+        </div>
+
+        <!-- Conteneur de la carte -->
+        <div class="rounded-3xl border border-gray-200 p-6 shadow-lg bg-white">
+            <div
+                id="carte-container"
+                class="flex justify-center min-h-[620px] items-center"
+            >
+                <div class="text-gray-500">Chargement de la carte...</div>
+            </div>
+        </div>
+    </section>
+
+    <script>
+        import * as Plot from "@observablehq/plot";
+        import departementsGeoJSON from "../assets/departementsGeoJSON.json";
+        import garesOuverte from "../assets/garesOuverte.json";
+        import garesFermées from "../assets/garesFermées.json";
+        import lignesOuvertes from "../assets/lignesOuvertes.json";
+        import lignesFermées from "../assets/lignesFermées.json";
+
+        const elmDepartement = document.getElementById(
+            "departement",
+        ) as HTMLSelectElement;
+        const elmGares = document.getElementById("gares") as HTMLSelectElement;
+        const elmLignes = document.getElementById(
+            "lignes",
+        ) as HTMLSelectElement;
+
+        let selectedDepartement = elmDepartement.value;
+        let selectedGares = elmGares.value;
+        let selectedLignes = elmLignes.value;
+
+        function updateMap() {
+            // Déterminer le domaine de projection
+            const selectedDepartementFeature =
+                selectedDepartement === "Toute la France"
+                    ? departementsGeoJSON
+                    : departementsGeoJSON.features.find(
+                          (d) => d.properties.nom === selectedDepartement,
+                      ) || departementsGeoJSON;
+
+            // Construire les marks dynamiquement
+            const marks: any[] = [];
+
+            // Toujours afficher le fond de carte
+            marks.push(
+                Plot.geo(departementsGeoJSON, {
+                    fill: "#F1F1F1",
+                    stroke: "black",
+                    strokeWidth: 1,
+                }),
+            );
+
+            // Ajouter les gares selon la sélection
+            if (
+                selectedGares === "Toutes" ||
+                selectedGares === "Gares Ouvertes"
+            ) {
+                marks.push(
+                    Plot.geo(garesOuverte, {
+                        fill: "green",
+                        r: 5,
+                        tip: true,
+                        title: (d: any) => `Gare ouverte`,
+                    }),
+                );
+            }
+
+            if (
+                selectedGares === "Toutes" ||
+                selectedGares === "Gares Fermées"
+            ) {
+                marks.push(
+                    Plot.geo(garesFermées, {
+                        fill: "red",
+                        r: 5,
+                        tip: true,
+                        title: (d: any) => `Gare fermée`,
+                    }),
+                );
+            }
+
+            // Ajouter les lignes selon la sélection
+            if (
+                selectedLignes === "Toutes" ||
+                selectedLignes === "Lignes Ouvertes"
+            ) {
+                marks.push(
+                    Plot.geo(lignesOuvertes, {
+                        stroke: "green",
+                        strokeWidth: 2,
+                    }),
+                );
+            }
+
+            if (
+                selectedLignes === "Toutes" ||
+                selectedLignes === "Lignes Fermées"
+            ) {
+                marks.push(
+                    Plot.geo(lignesFermées, {
+                        stroke: "red",
+                        strokeWidth: 2,
+                    }),
+                );
+            }
+
+            const optionPlot = {
+                width: 1500,
+                height: 800,
+                projection: {
+                    type: "mercator" as const,
+                    domain: selectedDepartementFeature,
+                    inset: 10,
+                },
+                marks: marks,
+            };
+
+            const container = document.getElementById("carte-container");
+            if (container) {
+                container.innerHTML = "";
+                container.appendChild(Plot.plot(optionPlot));
+            }
+        }
+
+        // Écouteurs d'événements
+        elmDepartement.addEventListener("change", () => {
+            selectedDepartement = elmDepartement.value;
+            updateMap();
+        });
+
+        elmGares.addEventListener("change", () => {
+            selectedGares = elmGares.value;
+            updateMap();
+        });
+
+        elmLignes.addEventListener("change", () => {
+            selectedLignes = elmLignes.value;
+            updateMap();
+        });
+
+        // Affichage initial
+        updateMap();
+    </script>
+</Layout>
