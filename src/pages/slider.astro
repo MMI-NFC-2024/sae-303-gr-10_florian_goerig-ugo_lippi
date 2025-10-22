@@ -1,0 +1,83 @@
+---
+import PlotFigure from "../components/PlotFigure.astro";
+import Layout from "../layouts/Layout.astro";
+import * as Plot from "@observablehq/plot";
+import departementsGeoJSON from "../assets/departementsGeoJSON.json";
+import garesOuverte from "../assets/garesOuverte.json";
+import garesFermées from "../assets/garesFermées.json";
+import lignesOuvertes from "../assets/lignesOuvertes.json";
+import lignesFermées from "../assets/lignesFermées.json";
+---
+
+<Layout>
+  <h1 class="text-2xl">Test Astro et Plot (Observablehq)</h1>
+  <div style="display: flex; gap: 20px;">
+    <div>
+      <h3>Carte gares ouverte</h3>
+      <PlotFigure
+        options={{
+          width: 1500,
+          projection: {
+            type: "mercator",
+            domain: departementsGeoJSON,
+          },
+          marks: [
+            Plot.geo(departementsGeoJSON),
+            Plot.geo(garesOuverte, { fill: "green", r: 3 }),
+          ],
+        }}
+      />
+    </div>
+    <div>
+      <h3>Carte gares fermées</h3>
+      <PlotFigure
+        options={{
+          width: 1500,
+          projection: {
+            type: "mercator",
+            domain: departementsGeoJSON,
+          },
+          marks: [
+            Plot.geo(departementsGeoJSON),
+            Plot.geo(garesFermées, { fill: "red", r: 3 }),
+          ],
+        }}
+      />
+    </div>
+  </div>
+  <div style="display: flex; gap: 20px;">
+    <div>
+      <h3>Carte ligne ouverte</h3>
+      <PlotFigure
+        options={{
+          width: 1500,
+          projection: {
+            type: "mercator",
+            domain: departementsGeoJSON,
+          },
+          marks: [
+            Plot.geo(departementsGeoJSON),
+            Plot.geo(lignesOuvertes, { stroke: "green", r: 3 }),
+          ],
+        }}
+      />
+    </div>
+
+    <div>
+      <h3>Carte ligne fermé</h3>
+      <PlotFigure
+        options={{
+          width: 1500,
+          projection: {
+            type: "mercator",
+            domain: departementsGeoJSON,
+          },
+          marks: [
+            Plot.geo(departementsGeoJSON),
+            Plot.geo(lignesFermées, { stroke: "red", r: 3 }),
+          ],
+        }}
+      />
+    </div>
+  </div>
+</Layout>
