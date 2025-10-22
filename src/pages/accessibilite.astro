@@ -238,7 +238,10 @@ import Layout from "../layouts/Layout.astro";
     // Chargement asynchrone des données de tourisme
     async function loadTourismeData() {
         try {
-            const response = await fetch('/src/assets/tourisme.json');
+            const response = await fetch('/tourisme.json');
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
             tourismeData = await response.json();
             console.log(`${tourismeData.length} lieux culturels chargés`);
             await updateMap();
