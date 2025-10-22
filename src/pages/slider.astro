@@ -7,77 +7,246 @@ import garesOuverte from "../assets/garesOuverte.json";
 import garesFermées from "../assets/garesFermées.json";
 import lignesOuvertes from "../assets/lignesOuvertes.json";
 import lignesFermées from "../assets/lignesFermées.json";
+
+const slides = ["Gares", "Lignes"];
 ---
 
-<Layout>
-  <h1 class="text-2xl">Test Astro et Plot (Observablehq)</h1>
-  <div style="display: flex; gap: 20px;">
-    <div>
-      <h3>Carte gares ouverte</h3>
-      <PlotFigure
-        options={{
-          width: 1500,
-          projection: {
-            type: "mercator",
-            domain: departementsGeoJSON,
-          },
-          marks: [
-            Plot.geo(departementsGeoJSON),
-            Plot.geo(garesOuverte, { fill: "green", r: 3 }),
-          ],
-        }}
-      />
-    </div>
-    <div>
-      <h3>Carte gares fermées</h3>
-      <PlotFigure
-        options={{
-          width: 1500,
-          projection: {
-            type: "mercator",
-            domain: departementsGeoJSON,
-          },
-          marks: [
-            Plot.geo(departementsGeoJSON),
-            Plot.geo(garesFermées, { fill: "red", r: 3 }),
-          ],
-        }}
-      />
-    </div>
-  </div>
-  <div style="display: flex; gap: 20px;">
-    <div>
-      <h3>Carte ligne ouverte</h3>
-      <PlotFigure
-        options={{
-          width: 1500,
-          projection: {
-            type: "mercator",
-            domain: departementsGeoJSON,
-          },
-          marks: [
-            Plot.geo(departementsGeoJSON),
-            Plot.geo(lignesOuvertes, { stroke: "green", r: 3 }),
-          ],
-        }}
-      />
+<Layout title="Visualisation Ferroviaire">
+  <div class="relative max-w-full mx-auto px-4 py-8">
+    <!-- En-tête avec titre et select -->
+    <div class="mb-6 text-center">
+      <h1 class="text-3xl font-bold mb-4">Visualisation des données ferroviaires</h1>
+      <select
+        id="slideSelect"
+        class="p-2 rounded-md bg-white text-gray-800 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
+      >
+        <option value="">-- Navigation rapide --</option>
+        {
+          slides.map((slide, index) => (
+            <option value={index}>{slide}</option>
+          ))
+        }
+      </select>
     </div>
 
-    <div>
-      <h3>Carte ligne fermé</h3>
-      <PlotFigure
-        options={{
-          width: 1500,
-          projection: {
-            type: "mercator",
-            domain: departementsGeoJSON,
-          },
-          marks: [
-            Plot.geo(departementsGeoJSON),
-            Plot.geo(lignesFermées, { stroke: "red", r: 3 }),
-          ],
-        }}
-      />
+    <!-- Carrousel container -->
+    <div class="relative">
+      <!-- Bouton précédent -->
+      <button
+        id="prevBtn"
+        class="absolute left-0 top-1/2 -translate-y-1/2 z-10 bg-white/90 hover:bg-white shadow-lg rounded-full p-3 transition-all hover:scale-110"
+        aria-label="Précédent"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+        </svg>
+      </button>
+
+      <!-- Slides container -->
+      <div id="carousel" class="flex overflow-x-hidden scroll-smooth snap-x snap-mandatory rounded-xl">
+        <!-- Slide 1: Gares -->
+        <section
+          class="min-w-full snap-start border border-slate-200 bg-white shadow-sm p-8"
+          data-slide="0"
+        >
+          <h2 class="mb-4 text-2xl font-semibold text-center">Gares</h2>
+          <div class="flex gap-6 justify-center overflow-x-auto">
+            <div>
+              <h3 class="text-xl font-medium mb-2 text-center">Gares ouvertes</h3>
+              <PlotFigure
+                options={{
+                  width: 700,
+                  projection: {
+                    type: "mercator",
+                    domain: departementsGeoJSON,
+                  },
+                  marks: [
+                    Plot.geo(departementsGeoJSON, { stroke: "#ccc", strokeWidth: 0.5 }),
+                    Plot.geo(garesOuverte, { fill: "green", r: 3 }),
+                  ],
+                }}
+              />
+            </div>
+            <div>
+              <h3 class="text-xl font-medium mb-2 text-center">Gares fermées</h3>
+              <PlotFigure
+                options={{
+                  width: 700,
+                  projection: {
+                    type: "mercator",
+                    domain: departementsGeoJSON,
+                  },
+                  marks: [
+                    Plot.geo(departementsGeoJSON, { stroke: "#ccc", strokeWidth: 0.5 }),
+                    Plot.geo(garesFermées, { fill: "red", r: 3 }),
+                  ],
+                }}
+              />
+            </div>
+          </div>
+        </section>
+
+        <!-- Slide 2: Lignes -->
+        <section
+          class="min-w-full snap-start border border-slate-200 bg-white shadow-sm p-8"
+          data-slide="1"
+        >
+          <h2 class="mb-4 text-2xl font-semibold text-center">Lignes</h2>
+          <div class="flex gap-6 justify-center overflow-x-auto">
+            <div>
+              <h3 class="text-xl font-medium mb-2 text-center">Lignes ouvertes</h3>
+              <PlotFigure
+                options={{
+                  width: 700,
+                  projection: {
+                    type: "mercator",
+                    domain: departementsGeoJSON,
+                  },
+                  marks: [
+                    Plot.geo(departementsGeoJSON, { stroke: "#ccc", strokeWidth: 0.5 }),
+                    Plot.geo(lignesOuvertes, { stroke: "green", strokeWidth: 2 }),
+                  ],
+                }}
+              />
+            </div>
+            <div>
+              <h3 class="text-xl font-medium mb-2 text-center">Lignes fermées</h3>
+              <PlotFigure
+                options={{
+                  width: 700,
+                  projection: {
+                    type: "mercator",
+                    domain: departementsGeoJSON,
+                  },
+                  marks: [
+                    Plot.geo(departementsGeoJSON, { stroke: "#ccc", strokeWidth: 0.5 }),
+                    Plot.geo(lignesFermées, { stroke: "red", strokeWidth: 2 }),
+                  ],
+                }}
+              />
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <!-- Bouton suivant -->
+      <button
+        id="nextBtn"
+        class="absolute right-0 top-1/2 -translate-y-1/2 z-10 bg-white/90 hover:bg-white shadow-lg rounded-full p-3 transition-all hover:scale-110"
+        aria-label="Suivant"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+        </svg>
+      </button>
+    </div>
+
+    <!-- Indicateurs de position -->
+    <div class="flex justify-center gap-2 mt-6">
+      {
+        slides.map((_, index) => (
+          <button
+            class="indicator w-3 h-3 rounded-full bg-gray-300 transition-all hover:bg-gray-400"
+            data-index={index}
+            aria-label={`Aller à la slide ${index + 1}`}
+          />
+        ))
+      }
     </div>
   </div>
+
+  <!-- Script pour le carrousel -->
+  <script>
+    const carousel = document.getElementById("carousel");
+    const prevBtn = document.getElementById("prevBtn");
+    const nextBtn = document.getElementById("nextBtn");
+    const slideSelect = document.getElementById("slideSelect") as HTMLSelectElement;
+    const indicators = document.querySelectorAll(".indicator");
+    const totalSlides = indicators.length;
+    let currentSlide = 0;
+
+    function updateCarousel(index: number) {
+      currentSlide = index;
+      const slideWidth = carousel!.offsetWidth;
+      carousel!.scrollTo({
+        left: slideWidth * currentSlide,
+        behavior: "smooth",
+      });
+
+      // Mettre à jour les indicateurs
+      indicators.forEach((indicator, i) => {
+        if (i === currentSlide) {
+          indicator.classList.remove("bg-gray-300");
+          indicator.classList.add("bg-blue-500", "w-8");
+        } else {
+          indicator.classList.remove("bg-blue-500", "w-8");
+          indicator.classList.add("bg-gray-300");
+        }
+      });
+
+      // Mettre à jour le select
+      slideSelect.value = currentSlide.toString();
+    }
+
+    // Navigation avec les boutons
+    prevBtn?.addEventListener("click", () => {
+      const newIndex = currentSlide > 0 ? currentSlide - 1 : totalSlides - 1;
+      updateCarousel(newIndex);
+    });
+
+    nextBtn?.addEventListener("click", () => {
+      const newIndex = currentSlide < totalSlides - 1 ? currentSlide + 1 : 0;
+      updateCarousel(newIndex);
+    });
+
+    // Navigation avec les indicateurs
+    indicators.forEach((indicator) => {
+      indicator.addEventListener("click", () => {
+        const index = parseInt(indicator.getAttribute("data-index") || "0");
+        updateCarousel(index);
+      });
+    });
+
+    // Navigation avec le select
+    slideSelect?.addEventListener("change", (evt) => {
+      const value = (evt.target as HTMLSelectElement).value;
+      if (value !== "") {
+        updateCarousel(parseInt(value));
+      }
+    });
+
+    // Détection du scroll pour mettre à jour les indicateurs
+    carousel?.addEventListener("scroll", () => {
+      const slideWidth = carousel.offsetWidth;
+      const scrollPosition = carousel.scrollLeft;
+      const newIndex = Math.round(scrollPosition / slideWidth);
+      if (newIndex !== currentSlide && newIndex >= 0 && newIndex < totalSlides) {
+        currentSlide = newIndex;
+        indicators.forEach((indicator, i) => {
+          if (i === currentSlide) {
+            indicator.classList.remove("bg-gray-300");
+            indicator.classList.add("bg-blue-500", "w-8");
+          } else {
+            indicator.classList.remove("bg-blue-500", "w-8");
+            indicator.classList.add("bg-gray-300");
+          }
+        });
+        slideSelect.value = currentSlide.toString();
+      }
+    });
+
+    // Navigation au clavier
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "ArrowLeft") {
+        const newIndex = currentSlide > 0 ? currentSlide - 1 : totalSlides - 1;
+        updateCarousel(newIndex);
+      } else if (e.key === "ArrowRight") {
+        const newIndex = currentSlide < totalSlides - 1 ? currentSlide + 1 : 0;
+        updateCarousel(newIndex);
+      }
+    });
+
+    // Initialiser les indicateurs
+    updateCarousel(0);
+  </script>
 </Layout>
