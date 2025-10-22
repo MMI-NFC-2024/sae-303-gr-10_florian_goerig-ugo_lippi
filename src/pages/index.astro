@@ -2,20 +2,13 @@
 import PlotFigure from "../components/PlotFigure.astro";
 import Layout from "../layouts/Layout.astro";
 import * as Plot from "@observablehq/plot";
-import penguins from "../assets/penguins.json";
+import departementsGeoJSON from "../assets/departementsGeoJSON.json";
+import garesOuverte from "../assets/garesOuverte.json";
+import garesFermées from "../assets/garesFermées.json";
+import lignesOuvertes from "../assets/lignesOuvertes.json";
+import lignesFermées from "../assets/lignesFermées.json";
 ---
 
 <Layout>
   <h1 class="text-2xl">Test Astro et Plot (Observablehq)</h1>
-  <PlotFigure
-    options={{
-      marks: [
-        Plot.dot(penguins, {
-          x: "culmen_length_mm",
-          y: "culmen_depth_mm",
-          stroke: "species",
-        }),
-      ],
-    }}
-  />
 </Layout>
