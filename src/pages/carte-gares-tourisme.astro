@@ -1,0 +1,327 @@
+---
+import Layout from "../layouts/Layout.astro";
+import PlotFigure from "../components/PlotFigure.astro";
+import departementsGeoJSON from "../assets/departementsGeoJSON.json";
+import garedept from "../assets/garedept.json";
+
+// Extraire la liste unique des départements
+const departements = ["Ain", ...Array.from(
+  new Set(
+    garedept
+      .map((g: any) => g.DEPT)
+      .filter((d: any) => d && d.trim() !== "" && d !== "Inconnu" && d !== "Ain")
+  )
+).sort()];
+
+// Convertir les gares en GeoJSON
+function createGareGeoJSON(gares: any[]) {
+  return {
+    type: "FeatureCollection",
+    features: gares
+      .filter((g: any) => !isNaN(+g.Y) && !isNaN(+g.X))
+      .map((g: any) => ({
+        type: "Feature",
+        properties: {
+          id: g.id,
+          dept: g.DEPT,
+          use: g.use
+        },
+        geometry: {
+          type: "Point",
+          coordinates: [+g.X, +g.Y]
+        }
+      }))
+  };
+}
+
+const garesOuvertes = createGareGeoJSON(garedept.filter((g: any) => g.use === "O"));
+const garesFermees = createGareGeoJSON(garedept.filter((g: any) => g.use === "N"));
+---
+
+<Layout>
+    <section class="p-6">
+        <h1 class="text-3xl font-bold mb-6 text-center">
+            Carte Interactive des Gares et Lieux Touristiques
+        </h1>
+
+        <!-- Contrôles de filtrage -->
+        <div class="bg-white rounded-lg shadow-md p-6 mb-6 max-w-4xl mx-auto">
+            <div class="flex flex-wrap gap-6 justify-center items-center mb-4">
+                <!-- Sélecteur de département -->
+                <div class="flex flex-col gap-2">
+                    <label for="filter-departement" class="font-semibold text-gray-700">
+                        Sélectionnez un département
+                    </label>
+                    <select
+                        id="filter-departement"
+                        class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 min-w-[250px]"
+                    >
+                        {departements.map((dept) => (
+                            <option value={dept} selected={dept === "Ain"}>{dept}</option>
+                        ))}
+                    </select>
+                </div>
+
+                <!-- Sélecteur de couche -->
+                <div class="flex flex-col gap-2">
+                    <label for="filter-couche" class="font-semibold text-gray-700">
+                        Choisir la couche
+                    </label>
+                    <select
+                        id="filter-couche"
+                        class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 min-w-[200px]"
+                    >
+                        <option value="Toutes" selected>Toutes</option>
+                        <option value="Gares Fermées">Gares Fermées</option>
+                        <option value="Gares Ouvertes">Gares Ouvertes</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Compteurs -->
+            <div class="flex flex-wrap gap-4 justify-center text-sm text-gray-600 pt-4 border-t border-gray-200">
+                <span>Département : <strong id="count-dept" class="text-blue-600">Ain</strong></span>
+                <span>Gares affichées : <strong id="count-gares" class="text-gray-800">0</strong></span>
+                <span>Lieux touristiques : <strong id="count-tourisme" class="text-blue-600">0</strong></span>
+            </div>
+        </div>
+
+        <!-- Conteneur de la carte -->
+        <div id="map-container" class="rounded-3xl border border-gray-200 p-6 shadow-lg bg-white">
+            <!-- La carte sera insérée ici -->
+        </div>
+
+        <!-- Indicateur de chargement -->
+        <div id="loading" class="text-center mt-4" style="display: none;">
+            <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+            <p class="mt-2 text-gray-600">Chargement des lieux touristiques...</p>
+        </div>
+    </section>
+</Layout>
+
+<script>
+    import * as Plot from "@observablehq/plot";
+    import departementsGeoJSON from "../assets/departementsGeoJSON.json";
+    import garedept from "../assets/garedept.json";
+
+    const filterDepartement = document.getElementById("filter-departement") as HTMLSelectElement;
+    const filterCouche = document.getElementById("filter-couche") as HTMLSelectElement;
+    const mapContainer = document.getElementById("map-container") as HTMLDivElement;
+    const loadingDiv = document.getElementById("loading") as HTMLDivElement;
+    const countDept = document.getElementById("count-dept") as HTMLSpanElement;
+    const countGares = document.getElementById("count-gares") as HTMLSpanElement;
+    const countTourismeSpan = document.getElementById("count-tourisme") as HTMLSpanElement;
+
+    let tourismeData: any[] = [];
+    let tourismeMetropole: any[] = [];
+
+    // Convertir les gares en GeoJSON par département et type
+    function filterGaresGeoJSON(departement: string, type: "O" | "N" | "all") {
+        const filtered = garedept.filter((g: any) => {
+            const matchDept = g.DEPT === departement;
+            if (type === "all") return matchDept;
+            return matchDept && g.use === type;
+        });
+
+        return {
+            type: "FeatureCollection",
+            features: filtered
+                .filter((g: any) => !isNaN(+g.Y) && !isNaN(+g.X))
+                .map((g: any) => ({
+                    type: "Feature",
+                    properties: {
+                        id: g.id,
+                        dept: g.DEPT,
+                        use: g.use
+                    },
+                    geometry: {
+                        type: "Point",
+                        coordinates: [+g.X, +g.Y]
+                    }
+                }))
+        };
+    }
+
+    // Filtrer les lieux touristiques par département (dans les bounds)
+    function filterTourismeByDept(departement: string) {
+        const deptFeature = departementsGeoJSON.features.find(
+            (f: any) => f.properties.nom === departement
+        );
+
+        if (!deptFeature || !deptFeature.geometry) return [];
+
+        // Calculer les bounds du département
+        let minLon = Infinity, maxLon = -Infinity;
+        let minLat = Infinity, maxLat = -Infinity;
+
+        const coords = deptFeature.geometry.type === "Polygon" 
+            ? deptFeature.geometry.coordinates[0]
+            : deptFeature.geometry.coordinates.flat(1);
+
+        coords.forEach((coord: number[]) => {
+            const [lon, lat] = coord;
+            minLon = Math.min(minLon, lon);
+            maxLon = Math.max(maxLon, lon);
+            minLat = Math.min(minLat, lat);
+            maxLat = Math.max(maxLat, lat);
+        });
+
+        // Filtrer les lieux touristiques dans ces bounds
+        return tourismeMetropole.filter((lieu: any) => {
+            const lon = +lieu.Longitude;
+            const lat = +lieu.Latitude;
+            return lon >= minLon && lon <= maxLon && lat >= minLat && lat <= maxLat;
+        });
+    }
+
+    // Créer la carte Plot
+    function updateMap() {
+        const departement = filterDepartement.value;
+        const couche = filterCouche.value;
+
+        // Trouver le département sélectionné
+        const deptFeature = departementsGeoJSON.features.find(
+            (f: any) => f.properties.nom === departement
+        );
+
+        if (!deptFeature) return;
+
+        const selectedDepartementGeoJSON = {
+            type: "FeatureCollection",
+            features: [deptFeature]
+        };
+
+        // Filtrer les gares selon la couche
+        const garesOuvertes = filterGaresGeoJSON(departement, "O");
+        const garesFermees = filterGaresGeoJSON(departement, "N");
+
+        // Filtrer les lieux touristiques
+        const tourismeFiltered = filterTourismeByDept(departement);
+
+        // Construire les marks selon les filtres
+        const marks: any[] = [
+            // Fond de carte des départements
+            Plot.geo(departementsGeoJSON, {
+                fill: "#F1F1F1",
+                stroke: "black"
+            })
+        ];
+
+        // Ajouter les gares selon la couche sélectionnée
+        if (couche === "Toutes" || couche === "Gares Ouvertes") {
+            marks.push(
+                Plot.geo(garesOuvertes, {
+                    fill: "green",
+                    r: 6,
+                    title: (d: any) => `Gare : ${d.properties.id}`,
+                    tip: true
+                })
+            );
+        }
+
+        if (couche === "Toutes" || couche === "Gares Fermées") {
+            marks.push(
+                Plot.geo(garesFermees, {
+                    fill: "red",
+                    r: 6,
+                    title: (d: any) => `Gare : ${d.properties.id}`,
+                    tip: true
+                })
+            );
+        }
+
+        // Ajouter les lieux touristiques
+        if (tourismeFiltered.length > 0) {
+            marks.push(
+                Plot.dot(tourismeFiltered, {
+                    x: "Longitude",
+                    y: "Latitude",
+                    r: 3,
+                    fill: "blue",
+                    opacity: 1,
+                    title: (d: any) => `Lieu touristique : ${d.Nom ?? "Inconnu"}`,
+                    tip: true
+                })
+            );
+        }
+
+        // Créer le plot
+        const plot = Plot.plot({
+            width: 1200,
+            height: 1200,
+            projection: {
+                type: "mercator",
+                domain: selectedDepartementGeoJSON,
+                inset: 10
+            },
+            marks: marks
+        });
+
+        // Remplacer le contenu
+        mapContainer.innerHTML = "";
+        mapContainer.appendChild(plot);
+
+        // Mettre à jour les compteurs
+        const totalGares = garesOuvertes.features.length + garesFermees.features.length;
+        let displayedGares = 0;
+        if (couche === "Toutes") {
+            displayedGares = totalGares;
+        } else if (couche === "Gares Ouvertes") {
+            displayedGares = garesOuvertes.features.length;
+        } else if (couche === "Gares Fermées") {
+            displayedGares = garesFermees.features.length;
+        }
+
+        countDept.textContent = departement;
+        countGares.textContent = displayedGares.toString();
+        countTourismeSpan.textContent = tourismeFiltered.length.toString();
+    }
+
+    // Écouteurs d'événements
+    filterDepartement.addEventListener("change", updateMap);
+    filterCouche.addEventListener("change", updateMap);
+
+    // Chargement des données
+    async function loadData() {
+        try {
+            // Afficher la carte initiale avec les gares
+            updateMap();
+
+            // Charger les lieux touristiques en arrière-plan
+            loadingDiv.style.display = "block";
+            console.log("Chargement des lieux touristiques...");
+            
+            const response = await fetch('/src/assets/tourisme.json');
+            
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            
+            tourismeData = await response.json();
+            
+            // Filtrer pour la métropole uniquement
+            tourismeMetropole = tourismeData.filter(
+                (d: any) =>
+                    d.Longitude > -6 &&
+                    d.Longitude < 10 &&
+                    d.Latitude > 41 &&
+                    d.Latitude < 52
+            );
+            
+            console.log(`${tourismeMetropole.length} lieux touristiques chargés (métropole)`);
+            
+            // Mettre à jour la carte avec les lieux touristiques
+            updateMap();
+            
+            loadingDiv.style.display = "none";
+            
+        } catch (error) {
+            console.error("Erreur lors du chargement des données de tourisme:", error);
+            loadingDiv.innerHTML = '<p class="text-red-600">Erreur lors du chargement des données de tourisme.</p>';
+            countTourismeSpan.textContent = "Erreur";
+        }
+    }
+
+    // Initialisation
+    loadData();
+</script>
