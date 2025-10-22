@@ -1,0 +1,305 @@
+---
+import Layout from "../layouts/Layout.astro";
+import garedept from "../assets/garedept.json";
+
+// Filtrer et préparer les données pour les sélecteurs
+const filteredData = garedept.filter((d) => d.use === "O" || d.use === "N");
+
+// Extraire les départements uniques
+const departements = [
+    "Ain",
+    ...Array.from(new Set(filteredData.map((d) => d.DEPT)))
+        .filter(
+            (n) =>
+                n && n.trim() !== "" && n !== "Inconnu" && n !== "Ain",
+        )
+        .sort(),
+];
+---
+
+<Layout>
+    <section>
+        <h1 class="text-3xl font-bold mb-6 text-center">
+            Visualisation des Gares par Département
+        </h1>
+
+        <!-- Conteneur flex pour mettre les graphiques côte à côte -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <!-- Graphique en barres -->
+            <div class="rounded-3xl border border-gray-200 p-6 shadow-lg bg-white">
+                <h2 class="text-xl font-bold mb-4 text-center">
+                    Graphique en barres - Tous les départements
+                </h2>
+                <div
+                    id="chart-container"
+                    class="flex justify-center min-h-[620px] items-center"
+                >
+                    <div class="text-gray-500">Chargement du graphique...</div>
+                </div>
+            </div>
+
+            <!-- Graphique en donut -->
+            <div class="rounded-3xl border border-gray-200 p-6 shadow-lg bg-white">
+                <h2 class="text-xl font-bold mb-4 text-center">
+                    Graphique en donut - Par département
+                </h2>
+
+                <!-- Filtre pour le donut -->
+                <div class="flex justify-center items-center mb-6">
+                    <label class="flex items-center gap-2">
+                        <span class="font-medium">Département :</span>
+                        <select
+                            id="departement-select"
+                            class="border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                        >
+                            {
+                                departements.map((d, i) => (
+                                    <option value={d} selected={i === 0}>
+                                        {d}
+                                    </option>
+                                ))
+                            }
+                        </select>
+                    </label>
+                </div>
+
+                <div
+                    id="donut-container"
+                    class="flex justify-center min-h-[620px] items-center"
+                >
+                    <div class="text-gray-500">Chargement du donut...</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <script>
+        import * as Plot from "@observablehq/plot";
+        import * as d3 from "d3";
+        import garedept from "../assets/garedept.json";
+
+        // Filtrer les données selon use="O" ou use="N"
+        const filteredData = garedept.filter(
+            (d: any) => d.use === "O" || d.use === "N",
+        );
+
+        // Grouper par département et statut
+        const grouped = d3.rollup(
+            filteredData,
+            (v) => v.length,
+            (d: any) => d.DEPT_NUM,
+            (d: any) => d.DEPT,
+            (d: any) => (d.use === "O" ? "Ouvert" : "Fermé"),
+        );
+
+        // Transformer en tableau plat
+        const countsByDept = Array.from(
+            grouped,
+            ([codeDept, nomMap]) =>
+                Array.from(nomMap, ([nomDept, statusMap]) => {
+                    let sortedStatuses = Array.from(
+                        statusMap,
+                        ([status, count]) => ({
+                            status,
+                            count,
+                        }),
+                    ).sort((a, b) =>
+                        a.status === "Ouvert"
+                            ? -1
+                            : b.status === "Ouvert"
+                              ? 1
+                              : 0,
+                    );
+
+                    return sortedStatuses.map(({ status, count }) => ({
+                        code_dept: codeDept,
+                        nom_dept: nomDept,
+                        status,
+                        count,
+                    }));
+                }).flat(),
+        ).flat();
+
+        // Filtrer les départements invalides
+        const filteredCounts = countsByDept.filter(
+            (d: any) =>
+                d.nom_dept &&
+                d.nom_dept !== "Inconnu" &&
+                d.nom_dept.trim() !== "",
+        );
+
+        // Calculer la hauteur en fonction du nombre de départements (barres moins hautes)
+        const nbDepartements = Array.from(
+            new Set(filteredCounts.map((d: any) => d.nom_dept)),
+        ).length;
+
+        const optionPlot = {
+            marginLeft: 130,
+            width: 700, // Réduit pour s'adapter à la colonne
+            height: Math.max(600, nbDepartements * 20), // Réduit de 40 à 20 pour des barres moins hautes
+            marks: [
+                Plot.barX(filteredCounts, {
+                    x: "count",
+                    y: "nom_dept",
+                    fill: "status",
+                    tip: true,
+                    title: (d: any) =>
+                        `${d.nom_dept}\n${d.status} : ${d.count} gares`,
+                }),
+            ],
+            x: { label: "Nombre de gares" },
+            y: { label: "Département" },
+            color: {
+                legend: true,
+                label: "Statut",
+                domain: ["Ouvert", "Fermé"],
+                range: ["green", "red"],
+            },
+        };
+
+        const container = document.getElementById("chart-container");
+        if (container) {
+            container.innerHTML = "";
+            container.appendChild(Plot.plot(optionPlot));
+        }
+
+        // ===== GRAPHIQUE EN DONUT =====
+
+        const departementSelect = document.getElementById(
+            "departement-select",
+        ) as HTMLSelectElement;
+        let selectedDept = departementSelect.value;
+
+        function updateDonut() {
+            // Filtrer les données pour le département sélectionné
+            const filteredDataForDept = countsByDept.filter(
+                (d: any) => d.nom_dept === selectedDept,
+            );
+
+            const pieData = filteredDataForDept.map((d: any) => ({
+                status: d.status,
+                count: d.count,
+            }));
+
+            const total = d3.sum(filteredDataForDept, (d: any) => d.count);
+
+            // Créer le SVG pour le donut
+            const width = 700; // Réduit pour s'adapter à la colonne
+            const height = 700; // Réduit pour s'adapter
+            const radius = 250; // Réduit le rayon
+
+            const svg = d3
+                .create("svg")
+                .attr("width", width)
+                .attr("height", height);
+
+            // Groupe pour la légende centré en haut
+            const legendG = svg
+                .append("g")
+                .attr("transform", `translate(${width / 2 - 60}, 80)`);
+
+            const color = d3
+                .scaleOrdinal()
+                .domain(["Ouvert", "Fermé"])
+                .range(["green", "red"]);
+
+            const legendData = ["Ouvert", "Fermé"];
+
+            // Espacement horizontal entre les items de légende
+            const spacing = 120;
+
+            legendData.forEach((status, i) => {
+                const g = legendG
+                    .append("g")
+                    .attr("transform", `translate(${i * spacing}, 0)`);
+
+                g.append("rect")
+                    .attr("x", -10)
+                    .attr("y", -12)
+                    .attr("width", 18)
+                    .attr("height", 18)
+                    .attr("fill", color(status));
+
+                g.append("text")
+                    .attr("x", 15)
+                    .attr("y", 2)
+                    .style("font-family", "sans-serif")
+                    .style("font-size", "14px")
+                    .text(status);
+            });
+
+            // Groupe centré pour le donut chart, en dessous de la légende
+            const g = svg
+                .append("g")
+                .attr(
+                    "transform",
+                    `translate(${width / 2},${height / 2 + 50})`, // Ajusté de +30 à +50 pour tenir compte de la légende descendue
+                );
+
+            const pie = d3
+                .pie()
+                .value((d: any) => d.count)
+                .sort(null);
+
+            const arc = d3
+                .arc()
+                .outerRadius(radius - 10)
+                .innerRadius(radius / 2);
+
+            const arcs = g
+                .selectAll(".arc")
+                .data(pie(pieData))
+                .join("g")
+                .attr("class", "arc");
+
+            arcs.append("path")
+                .attr("d", arc as any)
+                .attr("fill", (d: any) => color(d.data.status))
+                .attr("stroke", "white")
+                .attr("stroke-width", 2);
+
+            arcs.append("text")
+                .attr("transform", (d: any) => `translate(${arc.centroid(d)})`)
+                .attr("text-anchor", "middle")
+                .attr("dy", "0.35em")
+                .style("font-family", "sans-serif")
+                .style("font-size", "14px")
+                .style("fill", "white")
+                .text(
+                    (d: any) => `${((d.data.count / total) * 100).toFixed(1)}%`,
+                );
+
+            arcs.on("mouseenter", (event: any, d: any) => {
+                svg.append("text")
+                    .attr("id", "tooltip")
+                    .attr("x", width / 2)
+                    .attr("y", height - 560)
+                    .attr("text-anchor", "middle")
+                    .style("font-family", "sans-serif")
+                    .style("font-size", "16px")
+                    .style("font-weight", "bold")
+                    .text(`${d.data.status} : ${d.data.count} gares`);
+            });
+
+            arcs.on("mouseleave", () => {
+                svg.select("#tooltip").remove();
+            });
+
+            // Ajouter le SVG au conteneur
+            const donutContainer = document.getElementById("donut-container");
+            if (donutContainer) {
+                donutContainer.innerHTML = "";
+                donutContainer.appendChild(svg.node()!);
+            }
+        }
+
+        // Écouteur d'événement pour le changement de département
+        departementSelect.addEventListener("change", () => {
+            selectedDept = departementSelect.value;
+            updateDonut();
+        });
+
+        // Affichage initial du donut
+        updateDonut();
+    </script>
+</Layout>
