@@ -15,7 +15,23 @@ const slides = ["Gares", "Lignes"];
   <div class="relative max-w-full mx-auto px-4 py-8">
     <!-- En-tête avec titre et select -->
     <div class="mb-6 text-center">
-      <h1 class="text-3xl font-bold mb-4">Visualisation des données ferroviaires</h1>
+      <h1 class="text-4xl font-bold text-center mb-8 text-blue-700">Visualisation des données ferroviaires</h1>
+      
+      <!-- ===== Introduction (avant le slider) ===== -->
+      <p class="text-center text-gray-700 max-w-3xl mx-auto mb-6">
+        Depuis plus d'un siècle, le train structure le territoire français.
+        Mais au fil des décennies, <strong>la carte du rail s'est effritée</strong> : certaines lignes ont disparu, 
+        des gares ont fermé, et des zones entières ont vu leurs connexions s'effacer.
+        Ces cartes successives racontent cette transformation.
+      </p>
+
+      <p class="text-center text-gray-600 max-w-3xl mx-auto mb-8">
+        En passant d'une visualisation à l'autre, on observe les <strong>contrastes entre les gares ouvertes et fermées</strong>, 
+        puis entre les <strong>lignes actives et abandonnées</strong>.
+        Les points verts symbolisent les gares encore en service, les rouges celles qui ont cessé d'accueillir des trains.
+        Les traits suivent la même logique pour les lignes ferroviaires.
+      </p>
+
       <select
         id="slideSelect"
         class="p-2 rounded-md bg-white text-gray-800 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -153,6 +169,15 @@ const slides = ["Gares", "Lignes"];
         ))
       }
     </div>
+
+    <!-- ===== Analyse (après le slider) ===== -->
+    <p class="text-center text-gray-600 max-w-3xl mx-auto mt-8">
+      Ce jeu de cartes superposées dresse un constat clair : le réseau ferroviaire français s'est contracté.
+      Les grandes régions urbaines — Paris, Lyon, Lille, Marseille — concentrent désormais la majorité des lignes actives, 
+      tandis que de vastes territoires ruraux, notamment dans le centre et le sud-ouest, sont devenus des <strong>zones blanches du rail</strong>.
+      Ces fractures interrogent la promesse d'un <strong>tourisme accessible à tous</strong> et mettent en lumière 
+      les défis d'une mobilité durable à l'échelle nationale.
+    </p>
   </div>
 
   <!-- Script pour le carrousel -->

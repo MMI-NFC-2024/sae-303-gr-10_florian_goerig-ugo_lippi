@@ -21,10 +21,23 @@ const listeLignes = [
 ---
 
 <Layout>
-    <section>
-        <h1 class="text-3xl font-bold mb-6 text-center">
+    <section class="px-4 py-8">
+        <h1 class="text-4xl font-bold text-center mb-8 text-blue-700">
             Visualisation des Gares et Lignes Ferroviaires
         </h1>
+
+        <!-- ===== Introduction (avant la carte) ===== -->
+        <p class="text-center text-gray-700 max-w-3xl mx-auto mb-6">
+          En France, la carte du rail est aussi celle du lien entre les territoires.
+          Cette visualisation interactive explore les <strong>connexions entre gares et lignes ferroviaires</strong> —
+          ouvertes ou fermées — pour comprendre comment le réseau s'est transformé au fil du temps.
+        </p>
+
+        <p class="text-center text-gray-600 max-w-3xl mx-auto mb-8">
+          Les points verts symbolisent les <strong>gares en activité</strong>, les rouges celles qui ont cessé d'accueillir des trains.
+          Les traits verts indiquent les <strong>lignes toujours ouvertes</strong>, les rouges les <strong>lignes abandonnées</strong>.
+          En combinant les filtres, on peut visualiser la structure actuelle du réseau ou le fantôme de ce qu'il fut.
+        </p>
 
         <!-- Filtres -->
         <div class="flex flex-wrap gap-4 justify-center items-center mb-6">
@@ -86,6 +99,20 @@ const listeLignes = [
                 <div class="text-gray-500">Chargement de la carte...</div>
             </div>
         </div>
+
+        <!-- ===== Analyse (après la carte) ===== -->
+        <p class="text-center text-gray-600 max-w-3xl mx-auto mt-6">
+          Ce double regard révèle une France ferroviaire contrastée.
+          Les axes nord-sud — Paris, Lyon, Marseille — concentrent encore une forte activité, 
+          mais dans le centre et l'ouest, les lignes se raréfient.
+          Certaines zones, naguère maillées, sont devenues de <strong>déserts ferroviaires</strong>, 
+          où les rails subsistent parfois sans train, rappel silencieux d'un passé plus connecté.
+        </p>
+
+        <p class="text-center text-gray-600 max-w-3xl mx-auto mt-4">
+          En un coup d'œil, on comprend que la fermeture d'une ligne ne se limite pas à une question d'infrastructure :
+          elle redéfinit la mobilité, le tourisme, et jusqu'à la manière dont les habitants perçoivent leur territoire.
+        </p>
     </section>
 
     <script>

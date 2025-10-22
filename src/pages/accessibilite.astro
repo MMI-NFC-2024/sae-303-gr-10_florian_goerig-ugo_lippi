@@ -4,10 +4,23 @@ import Layout from "../layouts/Layout.astro";
 ---
 
 <Layout>
-    <section class="p-6">
-        <h1 class="text-3xl font-bold mb-6 text-center">
+    <section class="px-4 py-8">
+        <h1 class="text-4xl font-bold text-center mb-8 text-blue-700">
             Accessibilité aux Lieux Culturels
         </h1>
+
+        <!-- ===== Introduction (avant la carte) ===== -->
+        <p class="text-center text-gray-700 max-w-3xl mx-auto mb-6">
+          Si le train façonne les déplacements, il conditionne aussi l'accès à la culture.
+          Cette carte mesure combien de <strong>lieux culturels</strong> se trouvent dans un rayon donné autour de chaque gare.
+          En ajustant le curseur, on redessine le territoire de l'<strong>accessibilité culturelle en France</strong>.
+        </p>
+
+        <p class="text-center text-gray-600 max-w-3xl mx-auto mb-8">
+          Les gares rouges concentrent une offre dense : musées, monuments, espaces culturels à proximité.
+          À l'inverse, les gares vertes se situent dans des zones où la culture est plus éloignée.
+          Un instantané saisissant des disparités entre centre et périphérie.
+        </p>
 
         <!-- Indicateur de chargement -->
         <div id="loading" class="text-center mb-4">
@@ -36,6 +49,15 @@ import Layout from "../layouts/Layout.astro";
         <div class="rounded-3xl border border-gray-200 p-6 shadow-lg bg-white">
             <div id="carte" style="height: 600px; border-radius: 10px; overflow: hidden;"></div>
         </div>
+
+        <!-- ===== Analyse (après la carte) ===== -->
+        <p class="text-center text-gray-600 max-w-3xl mx-auto mt-6">
+          La carte révèle une réalité contrastée : dans les grandes métropoles, 
+          le train reste un vecteur de <strong>culture accessible</strong>.
+          Mais dans nombre de territoires, la disparition des petites gares a creusé une 
+          <strong>fracture culturelle</strong> autant que ferroviaire.
+          Relier la culture au rail pourrait être un levier fort pour repenser un tourisme plus durable et inclusif.
+        </p>
     </section>
 </Layout>
 

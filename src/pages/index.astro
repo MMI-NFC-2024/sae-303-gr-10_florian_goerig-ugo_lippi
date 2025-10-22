@@ -1,7 +1,146 @@
 ---
 import Layout from "../layouts/Layout.astro";
+
+const visualisations = [
+  {
+    title: "Gares & Lignes",
+    description: "Explorez la répartition des gares ouvertes et fermées ainsi que les lignes ferroviaires actives et désaffectées",
+    link: "/slider",
+    icon: "🗺️"
+  },
+  {
+    title: "Visualisation des Gares",
+    description: "Analyse comparative des gares par département avec graphiques en barres et camemberts interactifs",
+    link: "/barre",
+    icon: "📊"
+  },
+  {
+    title: "Carte Interactive Gares",
+    description: "Carte choroplèthe des gares ouvertes par département avec visualisation dynamique",
+    link: "/carte-gares",
+    icon: "🗾"
+  },
+  {
+    title: "Gares & Lignes Combinées",
+    description: "Superposition interactive des gares et lignes ferroviaires avec filtres par département",
+    link: "/carte-gares-lignes",
+    icon: "🚂"
+  },
+  {
+    title: "Gares & Tourisme",
+    description: "Croisement des données ferroviaires avec les lieux touristiques et culturels",
+    link: "/carte-gares-tourisme",
+    icon: "🏛️"
+  },
+  {
+    title: "Accessibilité Culturelle",
+    description: "Évaluation de l'accessibilité des lieux culturels depuis les gares avec calcul de distance",
+    link: "/accessibilite",
+    icon: "🎭"
+  }
+];
 ---
 
 <Layout>
-  <h1 class="text-2xl">Test Astro et Plot (Observablehq)</h1>
+  <!-- Hero Section -->
+  <section class="px-4 py-16 bg-gradient-to-b from-blue-50 to-white">
+    <div class="max-w-5xl mx-auto text-center">
+      <h1 class="text-5xl md:text-6xl font-bold mb-6 text-blue-900 leading-tight">
+        Fractures ferroviaires : quand la disparition des gares redessine la carte du tourisme
+      </h1>
+      
+      <p class="text-xl md:text-2xl text-gray-700 mb-8 font-light">
+        Une exploration interactive de l'évolution du réseau ferroviaire français et de son impact sur l'accessibilité touristique.
+      </p>
+      
+      <p class="text-lg text-gray-600 max-w-4xl mx-auto leading-relaxed">
+        Alors que la France encourage la mobilité durable, le train reste un levier essentiel pour un tourisme bas-carbone.
+        À travers plusieurs visualisations interactives, cette étude explore comment la disparition progressive du réseau ferroviaire
+        façonne aujourd'hui la géographie du tourisme durable en France.
+      </p>
+    </div>
+  </section>
+
+  <!-- Axe de communication -->
+  <section class="px-4 py-12 bg-white">
+    <div class="max-w-4xl mx-auto">
+      <h2 class="text-3xl font-bold text-center mb-10 text-blue-700">Axe de communication</h2>
+      
+      <div class="grid md:grid-cols-3 gap-8 mb-12">
+        <!-- Problématique -->
+        <div class="bg-blue-50 rounded-lg p-6 shadow-md">
+          <h3 class="text-xl font-bold mb-4 text-blue-800">Problématique</h3>
+          <p class="text-gray-700 leading-relaxed">
+            Comment la régression du réseau ferroviaire influence-t-elle l'accès aux territoires touristiques 
+            et la promotion d'un tourisme durable ?
+          </p>
+        </div>
+
+        <!-- Objectif -->
+        <div class="bg-green-50 rounded-lg p-6 shadow-md">
+          <h3 class="text-xl font-bold mb-4 text-green-800">Objectif du projet</h3>
+          <p class="text-gray-700 leading-relaxed">
+            Analyser la répartition des gares ouvertes et fermées, visualiser la densité ferroviaire par département,
+            et croiser ces données avec la localisation des lieux culturels afin d'évaluer les disparités d'accès au tourisme en train.
+          </p>
+        </div>
+
+        <!-- Public visé -->
+        <div class="bg-purple-50 rounded-lg p-6 shadow-md">
+          <h3 class="text-xl font-bold mb-4 text-purple-800">Public visé</h3>
+          <p class="text-gray-700 leading-relaxed">
+            Voyageurs, collectivités locales et acteurs du tourisme durable.
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Cards des visualisations -->
+  <section class="px-4 py-16 bg-gray-50">
+    <div class="max-w-6xl mx-auto">
+      <h2 class="text-3xl font-bold text-center mb-12 text-blue-700">Explorez les visualisations</h2>
+      
+      <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {visualisations.map((viz) => (
+          <a 
+            href={viz.link}
+            class="group bg-white rounded-xl p-6 shadow-md hover:shadow-xl transition-all duration-300 hover:-translate-y-1 border border-gray-200 hover:border-blue-400"
+          >
+            <div class="text-5xl mb-4">{viz.icon}</div>
+            <h3 class="text-xl font-bold mb-3 text-gray-800 group-hover:text-blue-600 transition-colors">
+              {viz.title}
+            </h3>
+            <p class="text-gray-600 leading-relaxed">
+              {viz.description}
+            </p>
+            <div class="mt-4 text-blue-600 font-semibold flex items-center gap-2">
+              Explorer 
+              <svg class="w-4 h-4 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+              </svg>
+            </div>
+          </a>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA Section -->
+  <section class="px-4 py-16 bg-blue-900 text-white">
+    <div class="max-w-4xl mx-auto text-center">
+      <h2 class="text-3xl font-bold mb-6">Découvrez l'impact du réseau ferroviaire sur le tourisme</h2>
+      <p class="text-xl mb-8 text-blue-100">
+        Plongez dans nos visualisations interactives pour comprendre les enjeux de la mobilité durable
+      </p>
+      <div class="flex gap-4 justify-center flex-wrap">
+        <a href="/a-propos" class="bg-white text-blue-900 px-8 py-3 rounded-lg font-semibold hover:bg-blue-50 transition-colors">
+          En savoir plus
+        </a>
+        <a href="/slider" class="bg-blue-700 text-white px-8 py-3 rounded-lg font-semibold hover:bg-blue-600 transition-colors border-2 border-blue-500">
+          Voir les cartes
+        </a>
+      </div>
+    </div>
+  </section>
 </Layout>

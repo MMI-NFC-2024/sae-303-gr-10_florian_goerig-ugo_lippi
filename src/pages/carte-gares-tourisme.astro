@@ -39,10 +39,23 @@ const garesFermees = createGareGeoJSON(garedept.filter((g: any) => g.use === "N"
 ---
 
 <Layout>
-    <section class="p-6">
-        <h1 class="text-3xl font-bold mb-6 text-center">
+    <section class="px-4 py-8">
+        <h1 class="text-4xl font-bold text-center mb-8 text-blue-700">
             Carte Interactive des Gares et Lieux Touristiques
         </h1>
+
+        <!-- ===== Introduction (avant la carte) ===== -->
+        <p class="text-center text-gray-700 max-w-3xl mx-auto mb-6">
+          Le train n'est pas qu'un moyen de transport : il est une porte d'entrée vers le patrimoine.
+          En croisant la localisation des gares avec celle des <strong>lieux touristiques</strong>, 
+          cette carte interroge le lien entre <strong>mobilité ferroviaire</strong> et <strong>tourisme durable</strong>.
+        </p>
+
+        <p class="text-center text-gray-600 max-w-3xl mx-auto mb-8">
+          Les points bleus représentent les sites touristiques.
+          En sélectionnant un département, on peut visualiser la proximité entre ces lieux et les gares ouvertes ou fermées.
+          Une manière concrète de mesurer <strong>l'accessibilité culturelle et patrimoniale</strong> en France.
+        </p>
 
         <!-- Contrôles de filtrage -->
         <div class="bg-white rounded-lg shadow-md p-6 mb-6 max-w-4xl mx-auto">
@@ -87,7 +100,7 @@ const garesFermees = createGareGeoJSON(garedept.filter((g: any) => g.use === "N"
         </div>
 
         <!-- Conteneur de la carte -->
-        <div id="map-container" class="rounded-3xl border border-gray-200 p-6 shadow-lg bg-white">
+        <div id="map-container" class="rounded-3xl border border-gray-200 p-6 shadow-lg bg-white flex justify-center">
             <!-- La carte sera insérée ici -->
         </div>
 
@@ -96,6 +109,14 @@ const garesFermees = createGareGeoJSON(garedept.filter((g: any) => g.use === "N"
             <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
             <p class="mt-2 text-gray-600">Chargement des lieux touristiques...</p>
         </div>
+
+        <!-- ===== Analyse (après la carte) ===== -->
+        <p class="text-center text-gray-600 max-w-3xl mx-auto mt-6">
+          Le contraste saute aux yeux : les zones touristiques les plus fréquentées — littoraux, Alpes, grandes villes —
+          sont bien desservies, tandis que de nombreux territoires ruraux, pourtant riches en patrimoine, 
+          se retrouvent éloignés du réseau.
+          L'accès au tourisme devient ici un marqueur des <strong>inégalités territoriales</strong>.
+        </p>
     </section>
 </Layout>
 
@@ -291,7 +312,7 @@ const garesFermees = createGareGeoJSON(garedept.filter((g: any) => g.use === "N"
             loadingDiv.style.display = "block";
             console.log("Chargement des lieux touristiques...");
             
-            const response = await fetch('/src/assets/tourisme.json');
+            const response = await fetch('/tourisme.json');
             
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);

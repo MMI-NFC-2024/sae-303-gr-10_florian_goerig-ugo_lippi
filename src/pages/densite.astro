@@ -3,10 +3,17 @@ import Layout from "../layouts/Layout.astro";
 ---
 
 <Layout>
-    <section>
-        <h1 class="text-3xl font-bold mb-6 text-center">
+    <section class="px-4 py-8">
+        <h1 class="text-4xl font-bold text-center mb-8 text-blue-700">
             Carte des Gares Ouvertes par Département
         </h1>
+
+        <!-- ===== Introduction (avant la carte) ===== -->
+        <p class="text-center text-gray-700 max-w-3xl mx-auto mb-6">
+          Chaque département raconte une histoire différente.
+          Sur cette carte, plus la couleur est foncée, plus le nombre de gares encore ouvertes est élevé.
+          Ce simple dégradé de bleu révèle une <strong>géographie ferroviaire à deux vitesses</strong>.
+        </p>
 
         <!-- Conteneur de la carte -->
         <div class="rounded-3xl border border-gray-200 p-6 shadow-lg bg-white">
@@ -17,6 +24,15 @@ import Layout from "../layouts/Layout.astro";
                 <div class="text-gray-500">Chargement de la carte...</div>
             </div>
         </div>
+
+        <!-- ===== Analyse (après la carte) ===== -->
+        <p class="text-center text-gray-600 max-w-3xl mx-auto mt-6">
+          Dans le nord et l'est, le réseau reste dense, hérité des zones industrielles et minières.
+          L'Île-de-France, quant à elle, concentre un maillage serré de gares actives, reflet d'une mobilité quotidienne intense.
+          À l'inverse, le Massif central, la Creuse ou les Landes apparaissent en teintes claires — 
+          autant de territoires où la disparition des lignes a laissé des <strong>espaces déconnectés</strong>.
+          Cette fracture entre centre et périphérie questionne la capacité du train à relier encore tous les Français.
+        </p>
     </section>
 
     <script>

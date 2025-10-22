@@ -18,10 +18,22 @@ const departements = [
 ---
 
 <Layout>
-    <section>
-        <h1 class="text-3xl font-bold mb-6 text-center">
+    <section class="px-4 py-8">
+        <h1 class="text-4xl font-bold text-center mb-8 text-blue-700">
             Visualisation des Gares par Département
         </h1>
+
+        <!-- ===== Introduction (avant les graphiques) ===== -->
+        <p class="text-center text-gray-700 max-w-3xl mx-auto mb-6">
+          Derrière les cartes, les chiffres racontent une autre histoire.
+          Ce graphique en barres illustre la répartition des <strong>gares ouvertes et fermées</strong> selon les départements,
+          tandis que le graphique en donut permet de se concentrer sur un territoire particulier.
+        </p>
+
+        <p class="text-center text-gray-600 max-w-3xl mx-auto mb-8">
+          Ensemble, ils offrent un panorama clair : où le réseau ferroviaire résiste, où il disparaît, 
+          et dans quelle mesure cette transformation modifie les équilibres régionaux.
+        </p>
 
         <!-- Conteneur flex pour mettre les graphiques côte à côte -->
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -71,6 +83,14 @@ const departements = [
                 </div>
             </div>
         </div>
+
+        <!-- ===== Analyse (après les graphiques) ===== -->
+        <p class="text-center text-gray-600 max-w-3xl mx-auto mt-6">
+          Les départements denses et urbanisés dominent la catégorie des gares actives, 
+          tandis que les zones rurales concentrent la majorité des fermetures.
+          Ces écarts révèlent l'impact direct de la <strong>centralisation ferroviaire</strong> sur la mobilité, 
+          la démographie et le développement touristique.
+        </p>
     </section>
 
     <script>
