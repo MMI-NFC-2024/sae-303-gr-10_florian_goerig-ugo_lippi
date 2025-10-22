@@ -1,0 +1,253 @@
+---
+import "leaflet/dist/leaflet.css";
+import Layout from "../layouts/Layout.astro";
+---
+
+<Layout>
+    <section class="p-6">
+        <h1 class="text-3xl font-bold mb-6 text-center">
+            Accessibilité aux Lieux Culturels
+        </h1>
+
+        <!-- Indicateur de chargement -->
+        <div id="loading" class="text-center mb-4">
+            <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+            <p class="mt-2 text-gray-600">Chargement des données en cours...</p>
+        </div>
+
+        <!-- Contrôle du rayon -->
+        <div id="controls" class="flex justify-center items-center mb-6" style="display: none;">
+            <label class="flex items-center gap-4">
+                <span class="font-medium">Rayon d'accessibilité :</span>
+                <input
+                    type="range"
+                    id="rayon-slider"
+                    min="0.5"
+                    max="10"
+                    step="0.5"
+                    value="2"
+                    class="w-64"
+                />
+                <span id="rayon-value" class="font-bold text-blue-600">2 km</span>
+            </label>
+        </div>
+
+        <!-- Conteneur de la carte -->
+        <div class="rounded-3xl border border-gray-200 p-6 shadow-lg bg-white">
+            <div id="carte" style="height: 600px; border-radius: 10px; overflow: hidden;"></div>
+        </div>
+    </section>
+</Layout>
+
+<script>
+    import L from "leaflet";
+    import departementsGeoJSON from "../assets/departementsGeoJSON.json";
+    import garedept from "../assets/garedept.json";
+
+    const rayonSlider = document.getElementById("rayon-slider") as HTMLInputElement;
+    const rayonValue = document.getElementById("rayon-value") as HTMLSpanElement;
+    const loadingDiv = document.getElementById("loading") as HTMLDivElement;
+    const controlsDiv = document.getElementById("controls") as HTMLDivElement;
+
+    let rayon = parseFloat(rayonSlider.value);
+    let tourismeData: any[] = [];
+    let garesAvecAccessibilite: any[] = [];
+
+    // Fonction de distance Haversine
+    function haversineDistance(lat1: number, lon1: number, lat2: number, lon2: number): number {
+        const toRad = (angle: number) => (angle * Math.PI) / 180;
+        const R = 6371; // Rayon de la Terre en km
+        const dLat = toRad(lat2 - lat1);
+        const dLon = toRad(lon2 - lon1);
+        const a =
+            Math.sin(dLat / 2) ** 2 +
+            Math.cos(toRad(lat1)) *
+                Math.cos(toRad(lat2)) *
+                Math.sin(dLon / 2) ** 2;
+        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+        return R * c;
+    }
+
+    // Fonction de couleur (vert → jaune → rouge)
+    function colorScale(value: number, max: number): string {
+        const ratio = Math.min(value / max, 1);
+        const r = Math.floor(255 * ratio);
+        const g = Math.floor(255 * (1 - ratio));
+        return `rgb(${r},${g},0)`;
+    }
+
+    // Création de la carte centrée sur la France
+    const carte = L.map("carte").setView([46.6033, 1.883], 6);
+
+    // Ajout de la couche de tuiles OpenStreetMap
+    L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 19,
+        attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+    }).addTo(carte);
+
+    // Ajouter les départements en fond
+    L.geoJSON(departementsGeoJSON, {
+        style: {
+            fillColor: "#F1F1F1",
+            fillOpacity: 0.3,
+            color: "black",
+            weight: 1,
+        },
+    }).addTo(carte);
+
+    // Groupe de marqueurs pour les gares
+    let layerGroup = L.layerGroup().addTo(carte);
+
+    // Ajouter la légende
+    const legend = L.control({ position: "bottomright" });
+    legend.onAdd = function () {
+        const div = L.DomUtil.create("div", "legend");
+        div.innerHTML = `
+            <style>
+                .legend {
+                    background: white;
+                    padding: 8px 10px;
+                    border-radius: 8px;
+                    box-shadow: 0 0 6px rgba(0,0,0,0.2);
+                    font-size: 13px;
+                    line-height: 1.3em;
+                }
+                .legend-gradient {
+                    background: linear-gradient(to right, green, yellow, red);
+                    height: 10px;
+                    border-radius: 5px;
+                    margin: 4px 0;
+                }
+            </style>
+            <div><b>Accessibilité culturelle</b></div>
+            <div class="legend-gradient"></div>
+            <div><span style="color:green;">Faible</span> — <span style="color:red;">Forte</span></div>
+        `;
+        return div;
+    };
+    legend.addTo(carte);
+
+    // Fonction pour calculer l'accessibilité (avec optimisation)
+    async function calculateAccessibility() {
+        return new Promise<void>((resolve) => {
+            // Utiliser setTimeout pour permettre au navigateur de respirer
+            setTimeout(() => {
+                garesAvecAccessibilite = garedept
+                    .map((gare: any) => {
+                        const latGare = +gare.Y;
+                        const lonGare = +gare.X;
+                        
+                        if (isNaN(latGare) || isNaN(lonGare)) {
+                            return null;
+                        }
+
+                        let countAccessibles = 0;
+
+                        // Optimisation : ne calculer que si les coordonnées sont valides
+                        for (const lieu of tourismeData) {
+                            const latLieu = +lieu.Latitude;
+                            const lonLieu = +lieu.Longitude;
+                            
+                            if (isNaN(latLieu) || isNaN(lonLieu)) continue;
+
+                            // Pré-filtrage rapide par boîte englobante (plus rapide que Haversine)
+                            const latDiff = Math.abs(latGare - latLieu);
+                            const lonDiff = Math.abs(lonGare - lonLieu);
+                            
+                            // Approximation grossière : 1° ≈ 111km
+                            if (latDiff > rayon / 111 || lonDiff > rayon / 111) {
+                                continue;
+                            }
+
+                            if (haversineDistance(latGare, lonGare, latLieu, lonLieu) <= rayon) {
+                                countAccessibles++;
+                            }
+                        }
+
+                        return countAccessibles > 0 ? {
+                            ...gare,
+                            countAccessibles,
+                        } : null;
+                    })
+                    .filter((gare: any) => gare !== null);
+
+                resolve();
+            }, 10);
+        });
+    }
+
+    // Fonction pour afficher les gares sur la carte
+    function displayMarkers() {
+        // Vider les marqueurs existants
+        layerGroup.clearLayers();
+
+        // Trouver le max pour l'échelle de couleur
+        const maxCount = Math.max(
+            ...garesAvecAccessibilite.map((g: any) => g.countAccessibles),
+            1,
+        );
+
+        // Afficher les gares
+        for (const gare of garesAvecAccessibilite) {
+            const lat = +gare.Y;
+            const lon = +gare.X;
+            const color = colorScale(gare.countAccessibles, maxCount);
+
+            const marker = L.circleMarker([lat, lon], {
+                radius: Math.min(3 + gare.countAccessibles / 5, 15),
+                color: color,
+                fillColor: color,
+                fillOpacity: 0.7,
+                weight: 2,
+            });
+
+            marker.bindPopup(`
+                <b>${gare.id ?? "Gare inconnue"}</b><br>
+                ${gare.countAccessibles} lieux culturels à moins de ${rayon} km
+            `);
+
+            marker.addTo(layerGroup);
+        }
+    }
+
+    // Fonction principale de mise à jour
+    async function updateMap() {
+        loadingDiv.style.display = "block";
+        controlsDiv.style.display = "none";
+
+        await calculateAccessibility();
+        displayMarkers();
+
+        loadingDiv.style.display = "none";
+        controlsDiv.style.display = "flex";
+    }
+
+    // Écouteur pour le slider avec debounce
+    let timeoutId: number | undefined;
+    rayonSlider.addEventListener("input", () => {
+        rayon = parseFloat(rayonSlider.value);
+        rayonValue.textContent = `${rayon} km`;
+        
+        // Debounce pour éviter trop de recalculs
+        if (timeoutId) clearTimeout(timeoutId);
+        timeoutId = setTimeout(() => {
+            updateMap();
+        }, 300) as unknown as number;
+    });
+
+    // Chargement asynchrone des données de tourisme
+    async function loadTourismeData() {
+        try {
+            const response = await fetch('/src/assets/tourisme.json');
+            tourismeData = await response.json();
+            console.log(`${tourismeData.length} lieux culturels chargés`);
+            await updateMap();
+        } catch (error) {
+            console.error("Erreur lors du chargement des données:", error);
+            loadingDiv.innerHTML = '<p class="text-red-600">Erreur lors du chargement des données de tourisme.</p>';
+        }
+    }
+
+    // Initialisation
+    loadTourismeData();
+</script>
