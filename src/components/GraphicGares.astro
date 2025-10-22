@@ -1,0 +1,42 @@
+---
+import PlotFigure from "./PlotFigure.astro";
+import * as Plot from "@observablehq/plot";
+import departementsGeoJSON from "../assets/departementsGeoJSON.json";
+import garesOuverte from "../assets/garesOuverte.json";
+import garesFermées from "../assets/garesFermées.json";
+---
+
+<div style="display: flex; gap: 20px;">
+  <div>
+    <h3>Carte gares ouvertes</h3>
+    <PlotFigure
+      options={{
+        width: 1500,
+        projection: {
+          type: "mercator",
+          domain: departementsGeoJSON,
+        },
+        marks: [
+          Plot.geo(departementsGeoJSON),
+          Plot.geo(garesOuverte, { fill: "green", r: 3 }),
+        ],
+      }}
+    />
+  </div>
+  <div>
+    <h3>Carte gares fermées</h3>
+    <PlotFigure
+      options={{
+        width: 1500,
+        projection: {
+          type: "mercator",
+          domain: departementsGeoJSON,
+        },
+        marks: [
+          Plot.geo(departementsGeoJSON),
+          Plot.geo(garesFermées, { fill: "red", r: 3 }),
+        ],
+      }}
+    />
+  </div>
+</div>
